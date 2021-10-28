@@ -14,19 +14,30 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Shape
+import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
+import androidx.lifecycle.viewmodel.compose.viewModel
+import com.zgsbrgr.demos.solarsystem.R
 import com.zgsbrgr.demos.solarsystem.data.orderedPlanetsList
+import com.zgsbrgr.demos.solarsystem.di.AppContainer
+import com.zgsbrgr.demos.solarsystem.domain.model.Planet
 import java.util.*
+
+
 
 @ExperimentalAnimationApi
 @Composable
-fun PlanetDetailTop(shape: Shape, itemToLoad: Int) {
+fun PlanetDetailTop(shape: Shape, planet: Planet) {
     Column(modifier = Modifier.fillMaxWidth()) {
         val visible by remember { mutableStateOf(true) }
-        val planet = orderedPlanetsList[itemToLoad]
+
         AnimatedVisibility(
             visible = visible,
             enter = fadeIn(),
@@ -35,7 +46,7 @@ fun PlanetDetailTop(shape: Shape, itemToLoad: Int) {
             Column(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .fillMaxHeight(fraction = 0.65f)
+                    .fillMaxHeight(fraction = 0.6f)
                     .clip(shape = shape)
                     .background(planet.color)
                     .alpha(0.8f)
@@ -44,7 +55,6 @@ fun PlanetDetailTop(shape: Shape, itemToLoad: Int) {
                         exit = slideOutVertically()
                     ),
                 horizontalAlignment = Alignment.CenterHorizontally,
-
 
                 ) {
                 Text(text = planet.name.uppercase(),
@@ -86,7 +96,6 @@ fun PlanetDetailTop(shape: Shape, itemToLoad: Int) {
                                     Alignment.BottomCenter
                                 )
                         }
-
                     )
                 }
 
@@ -96,10 +105,132 @@ fun PlanetDetailTop(shape: Shape, itemToLoad: Int) {
     }
 }
 
+@Composable
+fun PlanetDetailBottom(planet: Planet, modifier: Modifier) {
+
+    Box(
+        modifier = modifier
+    ) {
+        Row(
+            modifier = Modifier
+                .align(Alignment.TopEnd)
+                .padding(end = 16.dp, top = 16.dp)
+        ) {
+            Text(
+                text = stringResource(id = R.string.list_title).uppercase(),
+                style = MaterialTheme.typography.subtitle1,
+                color = planet.color
+            )
+        }
+        PlanetDetailsTextColumn(planet = planet, modifier = Modifier
+            .align(Alignment.CenterStart)
+            .padding(start = 16.dp))
+
+        PlanetDetailsPager(planet = planet, modifier = Modifier.align(Alignment.CenterEnd). padding(end = 16.dp))
+
+
+    }
+    
+}
+
+@Composable
+fun PlanetDetailsPager(planet: Planet, modifier: Modifier) {
+
+
+}
+
+@Composable
+fun PlanetDetailsTextColumn(planet: Planet, modifier: Modifier) {
+    Column(modifier = modifier) {
+
+        val labels = arrayOf(
+            stringResource(id = R.string.label1),
+            stringResource(id = R.string.label2),
+            stringResource(id = R.string.label3),
+            stringResource(id = R.string.label4),
+            stringResource(id = R.string.label5),
+            stringResource(id = R.string.label6),
+            stringResource(id = R.string.label7),
+            stringResource(id = R.string.label8)
+        )
+
+        val planetValues = arrayOf(
+            planet.radius,
+            planet.distanceFromSun,
+            planet.moons.joinToString(separator = ","),
+            planet.gravity,
+            planet.tiltOfAxis,
+            planet.lengthOfYear,
+            planet.lengthOfDay,
+            planet.temperature
+        )
+
+        for((index, value) in labels.iterator().withIndex()) {
+            PlanetDetailTextRow(label = value, planetValue = planetValues[index], color = planet.color)
+        }
+
+
+    }
+}
+
+@Composable
+fun PlanetDetailTextRow(label: String, planetValue: String, color: Color ) {
+    Row {
+        Text(
+            text = label,
+            style =  MaterialTheme.typography.subtitle2,
+            color = colorResource( id = R.color.s_text_color ),
+            modifier = Modifier.padding(end = 4.dp),
+            fontSize = 14.sp
+        )
+        Text(
+            text = planetValue,
+            style =  MaterialTheme.typography.subtitle2,
+            color = color,
+            fontWeight = FontWeight.Bold,
+            fontSize = 14.sp
+
+        )
+    }
+}
+
+
 @ExperimentalAnimationApi
 @Composable
-fun PlanetView(itemToLoad: Int) {
-    PlanetDetailTop(shape = RoundedCornerShape(topStart = 0.dp, topEnd = 0.dp, bottomStart = 200.dp, bottomEnd = 200.dp), itemToLoad = itemToLoad)
+fun PlanetView(planet: Planet) {
+    PlanetDetailTop(shape = RoundedCornerShape(topStart = 0.dp, topEnd = 0.dp, bottomStart = 200.dp, bottomEnd = 200.dp), planet = planet)
+    PlanetDetailBottom(planet = planet, modifier = Modifier.fillMaxSize())
+}
+
+
+
+
+@ExperimentalAnimationApi
+@Composable
+fun PlanetDetailScreen(planetDetailViewModel: PlanetDetailViewModel) {
+
+    val uiState by planetDetailViewModel.uiState.collectAsState()
+
+    if (uiState.planet != null) {
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .background(colorResource(id = R.color.s_black))
+        ) {
+            PlanetView(uiState.planet!!)
+        }
+
+    }
+}
+
+@ExperimentalAnimationApi
+@Composable
+fun PlanetDetail(appContainer: AppContainer) {
+    val planetDetailViewModel: PlanetDetailViewModel = viewModel(
+        factory = PlanetDetailViewModel.provideFactory(appContainer.planetsRepository)
+    )
+    PlanetDetailScreen(planetDetailViewModel)
+
 }
 
 
@@ -108,5 +239,12 @@ fun PlanetView(itemToLoad: Int) {
 @Preview
 @Composable
 fun PlanetTopPreview() {
-    PlanetDetailTop(shape = RoundedCornerShape(topStart = 0.dp, topEnd = 0.dp, bottomStart = 200.dp, bottomEnd = 200.dp), 0)
+    PlanetDetailTop(shape = RoundedCornerShape(topStart = 0.dp, topEnd = 0.dp, bottomStart = 200.dp, bottomEnd = 200.dp), orderedPlanetsList[0])
+}
+
+@ExperimentalAnimationApi
+@Preview
+@Composable
+fun PlanetBottomPreview() {
+    PlanetDetailBottom(planet = orderedPlanetsList[0], modifier = Modifier.fillMaxSize())
 }

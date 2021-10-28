@@ -15,6 +15,7 @@ import androidx.compose.ui.res.colorResource
 import androidx.core.view.WindowCompat
 import com.google.accompanist.systemuicontroller.rememberSystemUiController
 import com.zgsbrgr.demos.solarsystem.data.orderedPlanetsList
+import com.zgsbrgr.demos.solarsystem.ui.SolarSystemApp
 import com.zgsbrgr.demos.solarsystem.ui.planet.PlanetView
 import com.zgsbrgr.demos.solarsystem.ui.theme.AppBlack
 import com.zgsbrgr.demos.solarsystem.ui.theme.SolarSystemTheme
@@ -25,34 +26,9 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
 
         WindowCompat.setDecorFitsSystemWindows(window, false)
-
+        val appContainer = (application as SolarSystemApplication).container
         setContent {
-            val systemUiController = rememberSystemUiController()
-            val useDarkIcons = MaterialTheme.colors.isLight
-            val position: MutableState<Int> = mutableStateOf(0)
-
-            SideEffect {
-                systemUiController.setSystemBarsColor(Color.Transparent, darkIcons = useDarkIcons)
-                systemUiController.setNavigationBarColor(AppBlack, darkIcons = useDarkIcons)
-
-            }
-            SolarSystemTheme {
-                // A surface container using the 'background' color from the theme
-                Column(modifier = Modifier
-                    .fillMaxSize()
-                    .background(colorResource(id = R.color.s_black))) {
-                    PlanetView(position.value)
-                    Button(onClick = {
-                        if(position.value < orderedPlanetsList.size - 1)
-                            position.value++
-                        else
-                            position.value = 0
-                    }) {
-
-                    }
-                }
-
-            }
+            SolarSystemApp(appContainer = appContainer)
         }
     }
 }

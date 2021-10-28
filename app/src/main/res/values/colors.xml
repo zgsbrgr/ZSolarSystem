@@ -10,4 +10,5 @@
 
     <color name="s_orange">#e5734f</color>
     <color name="s_black">#FF101010</color>
+    <color name="s_text_color">#e5ca9f</color>
 </resources>

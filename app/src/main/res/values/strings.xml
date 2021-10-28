@@ -1,3 +1,15 @@
 <resources>
     <string name="app_name">Solar System</string>
+
+    <string name="label1">Radius:</string>
+    <string name="label2">Distance from Sun:</string>
+    <string name="label3">Moons:</string>
+    <string name="label4">Gravity:</string>
+    <string name="label5">Axial tilt:</string>
+    <string name="label6">Length of Year:</string>
+    <string name="label7">Length of Day:</string>
+    <string name="label8">Temperature:</string>
+
+    <string name="list_title">discover</string>
+
 </resources>

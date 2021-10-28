@@ -16,3 +16,4 @@ data class Planet(
     val lengthOfDay: String,
     val temperature: String
     )
+
