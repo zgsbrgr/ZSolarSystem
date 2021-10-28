@@ -14,6 +14,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.colorResource
 import com.google.accompanist.insets.ProvideWindowInsets
+import com.google.accompanist.pager.ExperimentalPagerApi
 import com.google.accompanist.systemuicontroller.rememberSystemUiController
 import com.zgsbrgr.demos.solarsystem.R
 import com.zgsbrgr.demos.solarsystem.data.orderedPlanetsList
@@ -22,7 +23,10 @@ import com.zgsbrgr.demos.solarsystem.ui.planet.PlanetDetail
 import com.zgsbrgr.demos.solarsystem.ui.planet.PlanetView
 import com.zgsbrgr.demos.solarsystem.ui.theme.AppBlack
 import com.zgsbrgr.demos.solarsystem.ui.theme.SolarSystemTheme
+import kotlinx.coroutines.InternalCoroutinesApi
 
+@InternalCoroutinesApi
+@ExperimentalPagerApi
 @ExperimentalAnimationApi
 @Composable
 fun SolarSystemApp(appContainer: AppContainer) {

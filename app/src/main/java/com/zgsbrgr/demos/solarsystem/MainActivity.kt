@@ -13,14 +13,18 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.colorResource
 import androidx.core.view.WindowCompat
+import com.google.accompanist.pager.ExperimentalPagerApi
 import com.google.accompanist.systemuicontroller.rememberSystemUiController
 import com.zgsbrgr.demos.solarsystem.data.orderedPlanetsList
 import com.zgsbrgr.demos.solarsystem.ui.SolarSystemApp
 import com.zgsbrgr.demos.solarsystem.ui.planet.PlanetView
 import com.zgsbrgr.demos.solarsystem.ui.theme.AppBlack
 import com.zgsbrgr.demos.solarsystem.ui.theme.SolarSystemTheme
+import kotlinx.coroutines.InternalCoroutinesApi
 
 class MainActivity : ComponentActivity() {
+    @InternalCoroutinesApi
+    @ExperimentalPagerApi
     @ExperimentalAnimationApi
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)

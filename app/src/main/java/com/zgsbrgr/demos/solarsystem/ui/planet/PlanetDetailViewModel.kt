@@ -31,15 +31,15 @@ class PlanetDetailViewModel(
 
 
     init {
-        viewModelScope.launch {
-            val response = planetsRepository.getAllPlanets()
-            _uiState.update {
-                when(response) {
-                    is Result.Success -> it.copy(planet = response.data[2], loading = false)
-                    is Result.Error -> it.copy(loading = false)
-                }
-            }
-        }
+//        viewModelScope.launch {
+//            val response = planetsRepository.getAllPlanets()
+//            _uiState.update {
+//                when(response) {
+//                    is Result.Success -> it.copy(planet = response.data[2], loading = false)
+//                    is Result.Error -> it.copy(loading = false)
+//                }
+//            }
+//        }
     }
 
     fun loadSinglePlanetByPosition(position: Int) {

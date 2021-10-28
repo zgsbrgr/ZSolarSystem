@@ -6,6 +6,7 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.Card
 import androidx.compose.material.MaterialTheme
 import androidx.compose.material.Text
 import androidx.compose.runtime.*
@@ -16,20 +17,29 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Shape
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.lerp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.util.lerp
 import androidx.lifecycle.viewmodel.compose.viewModel
+import com.google.accompanist.pager.ExperimentalPagerApi
+import com.google.accompanist.pager.VerticalPager
+import com.google.accompanist.pager.calculateCurrentOffsetForPage
+import com.google.accompanist.pager.rememberPagerState
 import com.zgsbrgr.demos.solarsystem.R
 import com.zgsbrgr.demos.solarsystem.data.orderedPlanetsList
 import com.zgsbrgr.demos.solarsystem.di.AppContainer
 import com.zgsbrgr.demos.solarsystem.domain.model.Planet
+import kotlinx.coroutines.InternalCoroutinesApi
+import kotlinx.coroutines.flow.collect
 import java.util.*
-
+import kotlin.math.absoluteValue
 
 
 @ExperimentalAnimationApi
@@ -126,15 +136,44 @@ fun PlanetDetailBottom(planet: Planet, modifier: Modifier) {
             .align(Alignment.CenterStart)
             .padding(start = 16.dp))
 
-        PlanetDetailsPager(planet = planet, modifier = Modifier.align(Alignment.CenterEnd). padding(end = 16.dp))
-
-
     }
     
 }
 
+@InternalCoroutinesApi
+@ExperimentalPagerApi
 @Composable
-fun PlanetDetailsPager(planet: Planet, modifier: Modifier) {
+fun PlanetDetailsPager(planets: List<Planet>, modifier: Modifier, onPlanetSelectChange: (Int) -> Unit) {
+
+    //val pagerState = rememberPagerState(pageCount = planets.size, initialPage = 3)
+
+    val pagerState = rememberPagerState(pageCount = planets.size, initialPage = 3)
+
+    LaunchedEffect(pagerState) {
+        snapshotFlow { pagerState.currentPage }.collect { page ->
+            onPlanetSelectChange(page)
+        }
+    }
+    VerticalPager(state = pagerState, itemSpacing = 20.dp, modifier = Modifier
+        .height(200.dp)
+        .width(70.dp)) { page ->
+        Image(
+            painterResource(id = planets[page].imageResourceId),
+            contentDescription = "mars planet",
+            modifier = Modifier
+                .size(70.dp)
+                .alpha(1f)
+                .graphicsLayer {
+                    val pageOffset = calculateCurrentOffsetForPage(page).absoluteValue
+                    alpha = lerp(
+                        start = 0.5f,
+                        stop = 1f,
+                        fraction = 1f - pageOffset.coerceIn(0f,1f)
+                    )
+                }
+
+        )
+    }
 
 
 }
@@ -181,14 +220,14 @@ fun PlanetDetailTextRow(label: String, planetValue: String, color: Color ) {
             style =  MaterialTheme.typography.subtitle2,
             color = colorResource( id = R.color.s_text_color ),
             modifier = Modifier.padding(end = 4.dp),
-            fontSize = 14.sp
+            fontSize = 13.sp
         )
         Text(
             text = planetValue,
             style =  MaterialTheme.typography.subtitle2,
             color = color,
             fontWeight = FontWeight.Bold,
-            fontSize = 14.sp
+            fontSize = 13.sp
 
         )
     }
@@ -223,13 +262,38 @@ fun PlanetDetailScreen(planetDetailViewModel: PlanetDetailViewModel) {
     }
 }
 
+
+
+
+@InternalCoroutinesApi
+@ExperimentalPagerApi
+@Composable
+fun PlanetDetailScreen(planetListViewModel: PlanetListViewModel, onPlanetSelectChange: (Int) -> Unit) {
+
+    val uiState by planetListViewModel.uiState.collectAsState()
+    if(uiState.planets.isNotEmpty())
+        PlanetDetailsPager(planets = uiState.planets, modifier = Modifier.fillMaxSize(), onPlanetSelectChange = onPlanetSelectChange)
+
+}
+
+@InternalCoroutinesApi
+@ExperimentalPagerApi
 @ExperimentalAnimationApi
 @Composable
 fun PlanetDetail(appContainer: AppContainer) {
     val planetDetailViewModel: PlanetDetailViewModel = viewModel(
         factory = PlanetDetailViewModel.provideFactory(appContainer.planetsRepository)
     )
+    val planetListViewModel: PlanetListViewModel = viewModel(
+        factory = PlanetListViewModel.provideFactory(appContainer.planetsRepository)
+    )
+
+    val onPanelSelectChange: (Int) -> Unit = {
+        planetDetailViewModel.loadSinglePlanetByPosition(it)
+    }
+
     PlanetDetailScreen(planetDetailViewModel)
+    PlanetDetailScreen(planetListViewModel = planetListViewModel, onPanelSelectChange)
 
 }
 
