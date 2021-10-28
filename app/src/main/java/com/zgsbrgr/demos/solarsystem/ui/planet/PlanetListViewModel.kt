@@ -14,6 +14,7 @@ import kotlinx.coroutines.launch
 
 data class PlanetListUiState(
     val planets: List<Planet> = emptyList(),
+    val selected: Int = 3,
     val loading: Boolean = false
 )
 
@@ -33,6 +34,12 @@ class PlanetListViewModel(
                     is Result.Error -> it.copy(loading = false)
                 }
             }
+        }
+    }
+
+    fun changeSelection(position: Int) {
+        _uiState.update {
+            it.copy(selected = position)
         }
     }
 
