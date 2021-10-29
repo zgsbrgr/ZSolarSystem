@@ -3,12 +3,13 @@ package com.zgsbrgr.demos.solarsystem.ui.planet
 import androidx.compose.animation.*
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.gestures.Orientation
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.Card
-import androidx.compose.material.MaterialTheme
-import androidx.compose.material.Text
+import androidx.compose.material.*
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.rounded.ThumbUp
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -20,30 +21,34 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Shadow
 import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.lerp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.util.lerp
 import androidx.constraintlayout.compose.ConstraintLayout
-import androidx.constraintlayout.widget.ConstraintLayout
 import androidx.lifecycle.viewmodel.compose.viewModel
+import com.google.accompanist.insets.LocalWindowInsets
+import com.google.accompanist.insets.statusBarsPadding
 import com.google.accompanist.pager.ExperimentalPagerApi
 import com.google.accompanist.pager.VerticalPager
 import com.google.accompanist.pager.calculateCurrentOffsetForPage
 import com.google.accompanist.pager.rememberPagerState
 import com.zgsbrgr.demos.solarsystem.R
-import com.zgsbrgr.demos.solarsystem.data.orderedPlanetsList
 import com.zgsbrgr.demos.solarsystem.di.AppContainer
 import com.zgsbrgr.demos.solarsystem.domain.model.Planet
 import kotlinx.coroutines.InternalCoroutinesApi
 import kotlinx.coroutines.flow.collect
 import java.util.*
 import kotlin.math.absoluteValue
+import com.zgsbrgr.demos.solarsystem.ui.utils.*
+import kotlinx.coroutines.launch
+
+
 
 
 @ExperimentalAnimationApi
@@ -293,29 +298,104 @@ fun PlanetView(uiState: PlanetListUiState, onPlanetSelectChange: (Int) -> Unit) 
 }
 
 
+private val FabSize = 56.dp
+private const val ExpandedSheetAlpha = 0.96f
+
+private enum class State {
+    Open,
+    Closed
+}
+
+@Composable
+private fun PlanetItemChooser(uiState: PlanetListUiState, openFraction: Float, width: Float, height: Float, onPlanetSelectChange: (Int) -> Unit, updateState: (State) -> Unit) {
+
+    if(uiState.planets.isEmpty())
+        return
+
+    val color = uiState.planets[uiState.selected].color
+
+    val fabSize = with(LocalDensity.current) { FabSize.toPx() }
+    val fabSheetHeight = fabSize + LocalWindowInsets.current.systemBars.bottom
+    val offsetX =
+        lerp(width - fabSize, 0f, 0f, 0.15f, openFraction)
+    val offsetY =
+        lerp(height - fabSheetHeight, 0f, openFraction)
+
+//    val offsetX =
+//        lerp(width - fabSize, 0f, 0f, 0.15f, openFraction)
+//    val offsetY =
+//        lerp(LocalWindowInsets.current.systemBars.top.toFloat(), 0f, openFraction)
+    val tlCorner = lerp(fabSize, 0f, 0f, 0.15f, openFraction)
+    val surfaceColor = lerp(
+        startColor = colorResource(id = R.color.s_black),
+        endColor = color.copy(alpha = ExpandedSheetAlpha),
+        startFraction = 0f,
+        endFraction = 0.3f,
+        fraction = openFraction
+    )
+    Surface(
+        color = surfaceColor,
+        contentColor = contentColorFor(backgroundColor = MaterialTheme.colors.primarySurface),
+        shape = RoundedCornerShape(topStart = 10f),
+        modifier = Modifier.graphicsLayer {
+            translationX = offsetX
+            translationY = offsetY
+        }
+    ) {
+//        Box(
+//            modifier = Modifier.size(50.dp, 50.dp).background(Color.Yellow)
+//        )
+        PlanetChooser(uiState, openFraction, onPlanetSelectChange, updateState)
+    }
+
+}
+
+@Composable
+private fun PlanetChooser(
+    uiState: PlanetListUiState,
+    openFraction: Float,
+    onPlanetSelectChange: (Int) -> Unit,
+    updateState: (State) -> Unit
+) {
+
+    val color = uiState.planets[uiState.selected].color
+    Box(
+        modifier = Modifier.fillMaxWidth()
+    ) {
+        val planetAlpha = lerp(0f, 1f, 0.2f, 0.8f, openFraction)
+
+        Column(modifier = Modifier
+            .fillMaxSize()
+            .graphicsLayer { alpha = planetAlpha }
+            .statusBarsPadding()) {
+
+        }
+
+        val fabAlpha = lerp(1f, 0f, 0f, 0.15f, openFraction)
+        Box(
+            modifier = Modifier
+                .size(FabSize)
+                //.padding(start = 16.dp, top = 8.dp)
+                .graphicsLayer { alpha = fabAlpha }
+        ) {
+            IconButton(
+                modifier = Modifier.align(Alignment.Center),
+                onClick = { updateState(State.Open) }
+            ) {
+                Icon(
+                    imageVector = Icons.Rounded.ThumbUp,
+                    tint = color,
+                    contentDescription = stringResource(id = R.string.label_expand_planet_list)
+                )
+            }
+        }
+
+    }
+
+}
 
 
-//@ExperimentalAnimationApi
-//@Composable
-//fun PlanetDetailScreen(planetDetailViewModel: PlanetDetailViewModel) {
-//
-//    val uiState by planetDetailViewModel.uiState.collectAsState()
-//
-//    if (uiState.planet != null) {
-//        Column(
-//            modifier = Modifier
-//                .fillMaxSize()
-//                .background(colorResource(id = R.color.s_black))
-//        ) {
-//            PlanetView(uiState.planet!!)
-//        }
-//
-//    }
-//}
-
-
-
-
+@OptIn(ExperimentalMaterialApi::class)
 @ExperimentalAnimationApi
 @InternalCoroutinesApi
 @ExperimentalPagerApi
@@ -327,14 +407,51 @@ fun PlanetDetailScreen(planetListViewModel: PlanetListViewModel) {
         planetListViewModel.changeSelection(it)
     }
 
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .background(colorResource(id = R.color.s_black))
-    ) {
-        PlanetView(uiState, onPlanetSelectChange)
+    BoxWithConstraints {
+        val state = rememberSwipeableState(initialValue = State.Closed)
+        val fabSize = with(LocalDensity.current) { FabSize.toPx() }
+        val dragRange = constraints.maxHeight - fabSize
+        val scope = rememberCoroutineScope()
+
+        Box(
+            Modifier.swipeable(
+                state = state,
+                anchors = mapOf(
+                    0f to State.Closed,
+                    -dragRange to State.Open
+                ),
+                thresholds = { _, _ -> FractionalThreshold(0.5f) },
+                orientation = Orientation.Vertical
+            )
+        ) {
+            val openFraction = if (state.offset.value.isNaN()) {
+                0f
+            } else {
+                -state.offset.value / dragRange
+            }.coerceIn(0f, 1f)
+            Column(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .background(colorResource(id = R.color.s_black))
+            ) {
+                PlanetView(uiState, onPlanetSelectChange)
+            }
+            PlanetItemChooser(
+                uiState = uiState,
+                openFraction,
+                this@BoxWithConstraints.constraints.maxWidth.toFloat(),
+                this@BoxWithConstraints.constraints.maxHeight.toFloat(),
+                onPlanetSelectChange
+            ) { _state ->
+                scope.launch {
+                    state.animateTo(_state)
+                }
+            }
+        }
     }
-//        PlanetDetailsPager(planets = uiState.planets, modifier = Modifier.fillMaxSize(), onPlanetSelectChange = onPlanetSelectChange)
+
+
+
 
 }
 
@@ -350,11 +467,7 @@ fun PlanetDetail(appContainer: AppContainer) {
         factory = PlanetListViewModel.provideFactory(appContainer.planetsRepository)
     )
 
-    val onPanelSelectChange: (Int) -> Unit = {
-        planetDetailViewModel.loadSinglePlanetByPosition(it)
-    }
 
-    //PlanetDetailScreen(planetDetailViewModel)
     PlanetDetailScreen(planetListViewModel = planetListViewModel)
 
 }

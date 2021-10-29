@@ -12,4 +12,7 @@
 
     <string name="list_title">discover</string>
 
+    <string name="label_expand_planet_list">Expand planets sheet</string>
+    <string name="label_collapse_planet_list">Collapse planets sheet</string>
+
 </resources>
