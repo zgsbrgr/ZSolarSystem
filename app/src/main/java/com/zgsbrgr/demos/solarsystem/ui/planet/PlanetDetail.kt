@@ -1,5 +1,6 @@
 package com.zgsbrgr.demos.solarsystem.ui.planet
 
+import android.util.Log
 import androidx.compose.animation.*
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
@@ -9,6 +10,8 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.*
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Info
+import androidx.compose.material.icons.filled.List
 import androidx.compose.material.icons.rounded.ThumbUp
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -314,17 +317,14 @@ private fun PlanetItemChooser(uiState: PlanetListUiState, openFraction: Float, w
 
     val color = uiState.planets[uiState.selected].color
 
+
     val fabSize = with(LocalDensity.current) { FabSize.toPx() }
     val fabSheetHeight = fabSize + LocalWindowInsets.current.systemBars.bottom
-    val offsetX =
-        lerp(width - fabSize, 0f, 0f, 0.15f, openFraction)
-    val offsetY =
-        lerp(height - fabSheetHeight, 0f, openFraction)
 
-//    val offsetX =
-//        lerp(width - fabSize, 0f, 0f, 0.15f, openFraction)
-//    val offsetY =
-//        lerp(LocalWindowInsets.current.systemBars.top.toFloat(), 0f, openFraction)
+    val offsetX = lerp(width - fabSize, 0f, 0f, 0.15f, openFraction)
+    val offsetY = lerp(fabSize - height, 0f, openFraction)
+
+
     val tlCorner = lerp(fabSize, 0f, 0f, 0.15f, openFraction)
     val surfaceColor = lerp(
         startColor = colorResource(id = R.color.s_black),
@@ -336,15 +336,13 @@ private fun PlanetItemChooser(uiState: PlanetListUiState, openFraction: Float, w
     Surface(
         color = surfaceColor,
         contentColor = contentColorFor(backgroundColor = MaterialTheme.colors.primarySurface),
-        shape = RoundedCornerShape(topStart = 10f),
+        shape = RoundedCornerShape(bottomStart = 10f),
         modifier = Modifier.graphicsLayer {
             translationX = offsetX
             translationY = offsetY
         }
     ) {
-//        Box(
-//            modifier = Modifier.size(50.dp, 50.dp).background(Color.Yellow)
-//        )
+
         PlanetChooser(uiState, openFraction, onPlanetSelectChange, updateState)
     }
 
@@ -377,13 +375,14 @@ private fun PlanetChooser(
                 .size(FabSize)
                 //.padding(start = 16.dp, top = 8.dp)
                 .graphicsLayer { alpha = fabAlpha }
+                .align(Alignment.BottomStart)
         ) {
             IconButton(
                 modifier = Modifier.align(Alignment.Center),
                 onClick = { updateState(State.Open) }
             ) {
                 Icon(
-                    imageVector = Icons.Rounded.ThumbUp,
+                    imageVector = Icons.Default.List,
                     tint = color,
                     contentDescription = stringResource(id = R.string.label_expand_planet_list)
                 )
@@ -418,7 +417,7 @@ fun PlanetDetailScreen(planetListViewModel: PlanetListViewModel) {
                 state = state,
                 anchors = mapOf(
                     0f to State.Closed,
-                    -dragRange to State.Open
+                    dragRange to State.Open
                 ),
                 thresholds = { _, _ -> FractionalThreshold(0.5f) },
                 orientation = Orientation.Vertical
@@ -427,7 +426,7 @@ fun PlanetDetailScreen(planetListViewModel: PlanetListViewModel) {
             val openFraction = if (state.offset.value.isNaN()) {
                 0f
             } else {
-                -state.offset.value / dragRange
+                state.offset.value / dragRange
             }.coerceIn(0f, 1f)
             Column(
                 modifier = Modifier
