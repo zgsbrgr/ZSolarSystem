@@ -4,6 +4,7 @@ import android.util.Log
 import androidx.compose.animation.*
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.Orientation
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
@@ -164,12 +165,9 @@ fun PlanetDetailBottom(uiState: PlanetListUiState, modifier: Modifier, onPlanetS
                 modifier = Modifier
                     .padding(start = 16.dp, top = 16.dp)
                     .fillMaxWidth(.7f)
-//                    .background(Color.Yellow)
                     .constrainAs(textBox) {
                         start.linkTo(parent.start)
                         top.linkTo(label.bottom)
-                        //centerVerticallyTo(parent)
-
                     }
             )
             PlanetDetailsPager(
@@ -220,11 +218,13 @@ fun PlanetDetailsPager(planets: List<Planet>, modifier: Modifier, onPlanetSelect
                 .padding(end = 8.dp)
                 .graphicsLayer {
                     val pageOffset = calculateCurrentOffsetForPage(page).absoluteValue
+
                     alpha = lerp(
                         start = 0.2f,
                         stop = 1f,
                         fraction = 1f - pageOffset.coerceIn(0f, 1f)
                     )
+
                 }
 
         )
@@ -232,6 +232,43 @@ fun PlanetDetailsPager(planets: List<Planet>, modifier: Modifier, onPlanetSelect
 
 
 }
+
+@OptIn(ExperimentalPagerApi::class)
+@Composable
+private fun PlanetListPager(planets: List<Planet>, modifier: Modifier, onPlanetSelectChange: (Int) -> Unit, updateState: (State) -> Unit) {
+
+    val pagerState = rememberPagerState(pageCount = planets.size, initialPage = 3, initialOffscreenLimit = planets.size)
+
+    LaunchedEffect(pagerState) {
+        snapshotFlow { pagerState.currentPage }.collect { page ->
+            onPlanetSelectChange(page)
+        }
+    }
+    VerticalPager(state = pagerState, itemSpacing = 5.dp, modifier = modifier,
+    ) { page ->
+        val pageOffset = calculateCurrentOffsetForPage(page).absoluteValue
+        Column(modifier = Modifier.height(80.dp), verticalArrangement = Arrangement.Center, horizontalAlignment = Alignment.Start) {
+            Text(
+                text = planets[page].name.uppercase(),
+                style = MaterialTheme.typography.h6,
+                color = planets[page].color,
+                modifier = Modifier
+                    .clickable {
+                        updateState(State.Closed)
+                    }
+                    .graphicsLayer {
+
+                        scaleX = lerp(start = 0.6f, stop = 1.25f, fraction = 1f - pageOffset.coerceIn(0f,1f))
+                        scaleY = lerp(start = 0.6f, stop = 1.25f, fraction = 1f - pageOffset.coerceIn(0f,1f))
+                    }
+
+            )
+        }
+
+
+    }
+}
+
 
 @Composable
 fun PlanetDetailsTextColumn(planet: Planet, modifier: Modifier) {
@@ -315,7 +352,7 @@ private fun PlanetItemChooser(uiState: PlanetListUiState, openFraction: Float, w
     if(uiState.planets.isEmpty())
         return
 
-    val color = uiState.planets[uiState.selected].color
+    val color = colorResource(id = R.color.s_black) //uiState.planets[uiState.selected].color
 
 
     val fabSize = with(LocalDensity.current) { FabSize.toPx() }
@@ -367,6 +404,7 @@ private fun PlanetChooser(
             .graphicsLayer { alpha = planetAlpha }
             .statusBarsPadding()) {
 
+            PlanetListPager(planets = uiState.planets, modifier = Modifier.fillMaxSize(), onPlanetSelectChange = onPlanetSelectChange, updateState)
         }
 
         val fabAlpha = lerp(1f, 0f, 0f, 0.15f, openFraction)
