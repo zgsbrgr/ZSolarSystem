@@ -4,13 +4,16 @@ import android.util.Log
 import androidx.compose.animation.*
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.Orientation
+import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.*
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Info
 import androidx.compose.material.icons.filled.List
 import androidx.compose.material.icons.rounded.ThumbUp
@@ -208,7 +211,7 @@ fun PlanetDetailsPager(planets: List<Planet>, modifier: Modifier, onPlanetSelect
         }
     }
     VerticalPager(state = pagerState, itemSpacing = 15.dp, modifier = modifier
-        ) { page ->
+    ) { page ->
         Image(
             painterResource(id = planets[page].imageResourceId),
             contentDescription = planets[page].name,
@@ -231,6 +234,7 @@ fun PlanetDetailsPager(planets: List<Planet>, modifier: Modifier, onPlanetSelect
     }
 
 
+
 }
 
 @OptIn(ExperimentalPagerApi::class)
@@ -244,29 +248,93 @@ private fun PlanetListPager(planets: List<Planet>, modifier: Modifier, onPlanetS
             onPlanetSelectChange(page)
         }
     }
-    VerticalPager(state = pagerState, itemSpacing = 5.dp, modifier = modifier,
-    ) { page ->
-        val pageOffset = calculateCurrentOffsetForPage(page).absoluteValue
-        Column(modifier = Modifier.height(80.dp), verticalArrangement = Arrangement.Center, horizontalAlignment = Alignment.Start) {
-            Text(
-                text = planets[page].name.uppercase(),
-                style = MaterialTheme.typography.h6,
-                color = planets[page].color,
+    Box(modifier = modifier) {
+        Box(modifier = Modifier
+            .fillMaxWidth()
+            .height(100.dp)
+            .padding(start = 20.dp, end = 20.dp)
+            .align(Alignment.Center)
+            .border(width = 1.dp, color = planets[pagerState.currentPage].color, shape = RoundedCornerShape(50.dp))
+
+        )
+
+        VerticalPager(state = pagerState, itemSpacing = 5.dp, modifier = modifier) { page ->
+            val pageOffset = calculateCurrentOffsetForPage(page).absoluteValue
+            Row(
                 modifier = Modifier
-                    .clickable {
+                    .clickable(
+                        // disable ripple effect
+                        indication = null,
+                        interactionSource = remember { MutableInteractionSource() }
+                    ) {
                         updateState(State.Closed)
                     }
-                    .graphicsLayer {
+            ) {
+                Column(modifier = Modifier.height(70.dp), verticalArrangement = Arrangement.Center, horizontalAlignment = Alignment.Start) {
+                    Text(
+                        text = planets[page].name.uppercase(),
+                        style = MaterialTheme.typography.h6,
+                        color = planets[page].color,
+                        modifier = Modifier
+                            .graphicsLayer {
 
-                        scaleX = lerp(start = 0.6f, stop = 1.25f, fraction = 1f - pageOffset.coerceIn(0f,1f))
-                        scaleY = lerp(start = 0.6f, stop = 1.25f, fraction = 1f - pageOffset.coerceIn(0f,1f))
-                    }
+                                scaleX = lerp(
+                                    start = 0.6f,
+                                    stop = 1.25f,
+                                    fraction = 1f - pageOffset.coerceIn(0f, 1f)
+                                )
+                                scaleY = lerp(
+                                    start = 0.6f,
+                                    stop = 1.25f,
+                                    fraction = 1f - pageOffset.coerceIn(0f, 1f)
+                                )
+                            }
+                    )
+                }
+                Spacer(modifier = Modifier.width(50.dp))
+                Image(
+                    painterResource(id = planets[page].imageResourceId),
+                    contentDescription = planets[page].name,
+                    modifier = Modifier
+                        .align(Alignment.CenterVertically)
+                        .size(70.dp)
+                        .alpha(1f)
+                        .graphicsLayer {
+                            alpha = lerp(
+                                start = 0f,
+                                stop = 1f,
+                                fraction = 1f - pageOffset.coerceIn(0f, 1f)
+                            )
 
-            )
+                        }
+
+                )
+
+            }
+
         }
 
+        Box(
+            modifier = Modifier
+                .size(FabSize)
+                .align(Alignment.TopEnd)
+        ) {
+            IconButton(
+                modifier = Modifier.align(Alignment.Center),
+                onClick = { updateState(State.Closed) }
+            ) {
+                Icon(
+                    imageVector = Icons.Default.Close,
+                    tint = planets[pagerState.currentPage].color,
+                    contentDescription = stringResource(id = R.string.label_expand_planet_list)
+                )
+            }
+        }
 
     }
+
+
+
 }
 
 
@@ -359,7 +427,7 @@ private fun PlanetItemChooser(uiState: PlanetListUiState, openFraction: Float, w
     val fabSheetHeight = fabSize + LocalWindowInsets.current.systemBars.bottom
 
     val offsetX = lerp(width - fabSize, 0f, 0f, 0.15f, openFraction)
-    val offsetY = lerp(fabSize - height, 0f, openFraction)
+    val offsetY = lerp(fabSheetHeight - height, 0f, openFraction)
 
 
     val tlCorner = lerp(fabSize, 0f, 0f, 0.15f, openFraction)
