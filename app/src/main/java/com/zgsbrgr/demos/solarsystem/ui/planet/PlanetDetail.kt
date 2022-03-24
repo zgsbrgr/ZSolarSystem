@@ -424,7 +424,7 @@ private fun PlanetItemChooser(uiState: PlanetListUiState, openFraction: Float, w
 
 
     val fabSize = with(LocalDensity.current) { FabSize.toPx() }
-    val fabSheetHeight = fabSize + LocalWindowInsets.current.systemBars.bottom
+    val fabSheetHeight = fabSize// + LocalWindowInsets.current.systemBars.bottom
 
     val offsetX = lerp(width - fabSize, 0f, 0f, 0.15f, openFraction)
     val offsetY = lerp(fabSheetHeight - height, 0f, openFraction)
@@ -479,7 +479,6 @@ private fun PlanetChooser(
         Box(
             modifier = Modifier
                 .size(FabSize)
-                //.padding(start = 16.dp, top = 8.dp)
                 .graphicsLayer { alpha = fabAlpha }
                 .align(Alignment.BottomStart)
         ) {
@@ -565,9 +564,7 @@ fun PlanetDetailScreen(planetListViewModel: PlanetListViewModel) {
 @ExperimentalAnimationApi
 @Composable
 fun PlanetDetail(appContainer: AppContainer) {
-    val planetDetailViewModel: PlanetDetailViewModel = viewModel(
-        factory = PlanetDetailViewModel.provideFactory(appContainer.planetsRepository)
-    )
+
     val planetListViewModel: PlanetListViewModel = viewModel(
         factory = PlanetListViewModel.provideFactory(appContainer.planetsRepository)
     )
